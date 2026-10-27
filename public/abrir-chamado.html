@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Abrir chamado</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <main id="m">
+        <h1>Abrir chamado</h1>
+        <div id="st" role="status">Carregando…</div>
+    </main>
+    <script>
+        const M = document.querySelector('#st'), esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        fetch('/api/config/public').then(r => r.json()).then(c => {
+            if (!c.publicOpen) { M.innerHTML = `<div class="card"><b>O formulário está indisponível no momento.</b><p>${esc(c.contactChannel)}</p></div>`; return }
+            M.innerHTML = `<div class="card"><label for="n">Seu nome</label><input id="n" autocomplete="name"><div class="row"><div><label for="e">E-mail</label><input id="e" type="email" autocomplete="email"></div><div><label for="w">WhatsApp (com DDD)</label><input id="w" inputmode="tel" autocomplete="tel"></div></div><small>Informe ao menos um. É por aí que enviaremos o retorno.</small><label for="c">Categoria</label><input id="c"><label for="t">Título</label><input id="t" maxlength="120"><label for="d">Descreva o problema</label><textarea id="d" rows="5" maxlength="4000"></textarea><input id="web" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px"><p><button class="p" id="go">Enviar chamado</button></p><div id="o" role="alert"></div></div>`;
+            document.querySelector('#go').onclick = async () => {
+                const v = id => document.querySelector('#' + id).value, r = await fetch('/api/public/tickets', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ contactName: v('n'), email: v('e'), whatsapp: v('w'), category: v('c'), title: v('t'), description: v('d'), website: v('web') }) }), j = await r.json(), o = document.querySelector('#o');
+                if (r.ok) M.innerHTML = `<div class="msg"><b>Chamado recebido.</b><p>Seu protocolo é <b>${esc(j.protocolo)}</b>. Guarde este número. Entraremos em contato pelo e-mail ou WhatsApp informado.</p></div>`; else o.innerHTML = `<p class="msg e">${j.erros ? Object.values(j.erros).map(esc).join('<br>') : esc(j.erro)}</p>`
+            }
+        }).catch(() => M.innerHTML = '<p class="msg e">Não foi possível carregar o formulário. Tente novamente.</p>');
+    </script>
+</body>
+
+</html>

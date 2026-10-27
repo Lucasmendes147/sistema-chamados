@@ -1,0 +1,8 @@
+{
+    "name": "Chamados",
+    "short_name": "Chamados",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#f3f5f7",
+    "theme_color": "#1d2a3a"
+}
